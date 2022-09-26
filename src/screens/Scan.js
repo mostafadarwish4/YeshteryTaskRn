@@ -1,19 +1,24 @@
-import { StyleSheet, Text, View,Image, TouchableOpacity, ImageBackground } from 'react-native'
-import React from 'react'
-import RNQRGenerator from 'rn-qr-generator';
+import { StyleSheet,  View,Image, TouchableOpacity  } from 'react-native'
+import React, { useState } from 'react'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  cancelAnimation,
+  withRepeat,
+  withSpring,
+} from 'react-native-reanimated';
 import Feather from 'react-native-vector-icons/Feather'
-import LinearGradient from 'react-native-linear-gradient';
 
-RNQRGenerator.detect({
-  // uri: , // local path of the image. Can be skipped if base64 is passed.
-  // base64: require('../api/0d04552f-6772-482c-ae0e-19b0ccfc2f1e.jpg'), // If uri is passed this option will be skipped.
-})
-  .then(response => {
-    const { values } = response; // Array of detected QR code values. Empty if nothing found.
-    console.log('values of qr',values)
-  })
-  .catch(error => console.log('Cannot detect QR code in image', error));
 const Scan = ({navigation}) => {
+  const [start,setStart]=useState(false)
+  const top = useSharedValue(20);
+  top.value=start?withRepeat(withSpring(220,{restSpeedThreshold:10,stiffness:40}),-1,true):20
+
+  const topStyle = useAnimatedStyle(() => {
+    return {
+      top:top.value
+    }
+  });
   return (
     <View style={styles.root}>
       <View style={styles.container}>
@@ -22,13 +27,16 @@ const Scan = ({navigation}) => {
         <View style={[styles.liner,styles.BL]}></View>
         <View style={[styles.liner,styles.BR]}></View>
         
-        <View style={styles.line}/>
+        <Animated.View  style={[styles.line,topStyle]}/>
         <TouchableOpacity onPress={()=>{navigation.goBack()}}
         style={styles.imgView}>
           <Image style={styles.image}  source={require('../api/0d04552f-6772-482c-ae0e-19b0ccfc2f1e.jpg')} />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.icon}>
+      <TouchableOpacity style={styles.icon} onPress={()=>{
+        setStart(s=>!s)
+        cancelAnimation(top)
+        }}>
         <Feather name='zap' size={50} color='white' />
       </TouchableOpacity>
     </View>
@@ -50,7 +58,7 @@ const styles = StyleSheet.create({
   },
   line:{
     position:'absolute',
-    top:120,
+    top:20,
     left:-5,
     bottom:0,
     right:0,
@@ -58,7 +66,7 @@ const styles = StyleSheet.create({
     height:5,
     width:210,
     borderRadius:10,
-    backgroundColor:"#8000FF"//"#C8CDD1"
+    backgroundColor:'blue'//"#8000FF"//"#C8CDD1"
   },
   liner:{
     position:'absolute',
